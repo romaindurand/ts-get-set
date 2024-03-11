@@ -1,7 +1,7 @@
-import { isObject } from "./utils";
-import { StringToPath, stringToPath } from "./string-to-path";
-import { AnyArray, AnyObject, Sequence, IsNumericKey } from "./types";
-import { SetTuple, GetArrayValue, IsTuple } from "./tuple";
+import { isObject } from "./utils.js";
+import { StringToPath, stringToPath } from "./string-to-path.js";
+import { AnyArray, AnyObject, Sequence, IsNumericKey } from "./types.js";
+import { SetTuple, GetArrayValue, IsTuple } from "./tuple.js";
 
 // `StringPath` doesn't get distributed inside `Set_`, do it manually here
 export type Set<
@@ -105,3 +105,44 @@ export const set: SetFunction = (object, stringPath, value) => {
   }
   return object as any;
 };
+
+export declare type SetMany<
+  Obj extends AnyObject,
+  StringPaths extends string[],
+  Values extends any[],
+  Index extends number = 0
+> = {
+  0: StringPaths extends unknown
+    ? SetMany<
+        SetMany<Obj, StringPaths, Values>,
+        StringPaths,
+        Values,
+        Sequence[Index]
+      >
+    : never;
+  1: Obj;
+}[Index extends StringPaths["length"] ? 1 : 0];
+
+interface SetManyFunction {
+  <Obj extends AnyObject, StringPaths extends string[], Values extends any[]>(
+    object: Obj,
+    paths: StringPaths,
+    values: Values
+  ): SetMany<Obj, StringPaths, Values>;
+}
+
+export const setMany: SetManyFunction = (obj, paths, values) => {
+  let result = { ...obj };
+  for (let i = 0; i < paths.length; i++) {
+    result = set(result, paths[i], values[i]);
+  }
+  return result as SetMany<typeof obj, typeof paths, typeof values>;
+};
+
+type ObjType = { a: { b: 2; foo: { bar: "baz" } }; c: { d: 4 }; e: { f: 6 } };
+
+type UpdatedManyObj = SetMany<
+  ObjType,
+  ["a.b", "c.d", "e.f", "a.foo.bar"],
+  [3, 5, 7, 1000]
+>;
