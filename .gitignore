@@ -1,4 +1,2 @@
-node_modules
-.size-snapshot.json
-coverage
-dist
+/node_modules/
+/dist/

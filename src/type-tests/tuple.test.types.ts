@@ -1,4 +1,4 @@
-import { GetTupleRest, IsTuple } from "src/tuple";
+import { GetTupleRest, IsTuple } from "../tuple";
 import { assert } from ".";
 
 assert<IsTuple<[]>>(true);
